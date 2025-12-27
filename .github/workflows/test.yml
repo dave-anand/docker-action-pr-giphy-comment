@@ -24,6 +24,7 @@
 #           github-token: ${{ secrets.GITHUB_TOKEN }}
 #           giphy-api-key: ${{ secrets.GIPHY_API_KEY }}
 
+name: Thank You GIF
 on:
   pull_request:
     types: [opened]
@@ -35,20 +36,17 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - name: Post Thank You GIF
+      - name: Post GIF Comment
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIPHY_API_KEY: ${{ secrets.GIPHY_API_KEY }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIPHY_KEY: ${{ secrets.GIPHY_API_KEY }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
         run: |
-          # Direct inline script - NO custom action, NO checkout needed
-          curl -s -f "https://api.giphy.com/v1/gifs/random?api_key=$GIPHY_API_KEY&tag=thank%20you&rating=g" | \
-          jq -r '.data.images.downsized.url' | \
-          xargs -I {} curl -s -X POST \
-            -H "Authorization: token $GITHUB_TOKEN" \
+          GIF_URL=$(curl -s "https://api.giphy.com/v1/gifs/random?api_key=$GIPHY_KEY&tag=thank%20you&rating=g" | jq -r '.data.images.downsized.url')
+          
+          curl -s -X POST \
+            -H "Authorization: token $TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
-            -d "{\"body\": \"### 🎉 Thank you for PR #$PR_NUMBER!\\n\\n![GIF]({})\"}" \
+            -d "{\"body\": \"### 🎉 Thank you for PR #$PR_NUMBER!\\n![Thank You]($GIF_URL)\"}" \
             "https://api.github.com/repos/$REPO/issues/$PR_NUMBER/comments"
-
-
