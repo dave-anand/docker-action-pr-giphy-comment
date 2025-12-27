@@ -29,16 +29,26 @@ on:
     types: [opened]
 
 jobs:
-  testing-action:
+  comment:
     runs-on: ubuntu-latest
     permissions:
       issues: write
       pull-requests: write
     steps:
-      # NO CHECKOUT NEEDED
-      - name: Post PR Comment
-        uses: ./.github/custom-actions/npm-actions/action.yml
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          giphy-api-key: ${{ secrets.GIPHY_API_KEY }}
+      - name: Post Thank You GIF
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIPHY_API_KEY: ${{ secrets.GIPHY_API_KEY }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Direct inline script - NO custom action, NO checkout needed
+          curl -s -f "https://api.giphy.com/v1/gifs/random?api_key=$GIPHY_API_KEY&tag=thank%20you&rating=g" | \
+          jq -r '.data.images.downsized.url' | \
+          xargs -I {} curl -s -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d "{\"body\": \"### 🎉 Thank you for PR #$PR_NUMBER!\\n\\n![GIF]({})\"}" \
+            "https://api.github.com/repos/$REPO/issues/$PR_NUMBER/comments"
+
 
