@@ -1,26 +1,44 @@
+# on:
+#   pull_request:
+#     types:
+#       - opened
+
+# jobs:
+#   testing-action:
+#     runs-on: ubuntu-latest
+#     permissions:
+#       contents: read      # Added this for checkout
+#       issues: write
+#       pull-requests: write
+#     steps:
+#       - name: Checkout Repository
+#         uses: actions/checkout@v4
+#         with:
+#           token: ${{ secrets.PAT_TOKEN }}  # ← This fixes it
+#           fetch-depth: 1
+#           ref: ${{ github.head_ref }}  # Checkout PR branch directly
+
+#       - name: Post PR Comment
+#         uses: ./
+#         with:
+#           github-token: ${{ secrets.GITHUB_TOKEN }}
+#           giphy-api-key: ${{ secrets.GIPHY_API_KEY }}
+
 on:
   pull_request:
-    types:
-      - opened
+    types: [opened]
 
 jobs:
   testing-action:
     runs-on: ubuntu-latest
     permissions:
-      contents: read      # Added this for checkout
       issues: write
       pull-requests: write
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.PAT_TOKEN }}  # ← This fixes it
-          fetch-depth: 1
-          ref: ${{ github.head_ref }}  # Checkout PR branch directly
-
+      # NO CHECKOUT NEEDED
       - name: Post PR Comment
-        uses: ./
+        uses: ./.github/custom-actions/npm-actions/action.yml
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           giphy-api-key: ${{ secrets.GIPHY_API_KEY }}
- 
+
